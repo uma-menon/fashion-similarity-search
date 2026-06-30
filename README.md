@@ -3,7 +3,7 @@ PyTorch implementation of a fashion visual similarity search engine using Fashio
 -> starting with FPI (small)
 
 ```bash
-pip install torch torchvision faiss-cpu numpy pillow matplotlib pandas kaggle jupyter
+pip install torch torchvision faiss-cpu numpy pillow matplotlib pandas kaggle jupyter scikit-learn
 
 mkdir data
 kaggle datasets download -d paramaggarwal/fashion-product-images-small -p data/

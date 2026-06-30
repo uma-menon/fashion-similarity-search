@@ -1,7 +1,10 @@
 import pandas as pd
 import os
 from PIL import Image
+import torch
 import torchvision.transforms as transforms
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
 
 
 def clean():
@@ -47,6 +50,7 @@ transformations=transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], #imageNet mean 
                          std=[0.229, 0.224, 0.225]) #imageNet std
+                        #  (pixel - mean) / std
 ])
 
 class Dataset:
@@ -84,3 +88,34 @@ print("Image type:", type(image))
 print("Tensor shape:", image.shape)
 print("Label:", label)
 
+print('--- DATALOADERS ---')
+
+train_df, val_df = train_test_split(df, test_size=0.2, stratify=df['articleType'], random_state=42)
+train_dataset=Dataset(train_df, class_to_idx, transformations)
+val_dataset=Dataset(val_df, class_to_idx, transformations)
+
+
+train_loader=DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader=DataLoader(val_dataset, batch_size=32, shuffle=False)
+
+print("--- ONE BATCH ---")
+check_batch = next(iter(train_loader))
+print("Batch image shape:", check_batch[0].shape)
+print("Batch label shape and dtype:", check_batch[1].shape, check_batch[1].dtype)
+print("Batch label values:", check_batch[1])
+range_check=[check_batch[1][i].item() in range(0,39) for i in range(32)]
+print(not False in range_check) # should be False if all labels are in range 0-38
+
+print("--- RECONSTRUCTED IMAGES ---")
+for i in range(4):
+    image_tensor=check_batch[0][i]
+    print("Supposed to be: ", check_batch[1][i].item() , class_names[check_batch[1][i].item()])
+    mean_tensor= torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    std_tensor= torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    px = image_tensor * std_tensor + mean_tensor
+    px = px * 255
+    px = px.permute(1, 2, 0) # CHW to HWC
+    img_arr=px.detach().numpy().astype('uint8')
+    img=Image.fromarray(img_arr)
+    # img.show()
+    
