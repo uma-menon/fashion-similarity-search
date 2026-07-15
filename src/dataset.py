@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 def clean():
         
     df = pd.read_csv('data/styles.csv', on_bad_lines='skip')
-    print("before clean:", df.shape)
+    # print("before clean:", df.shape)
 
     # DROP rows with missing images
     mask = df['id'].apply(lambda x: os.path.exists(f"data/images/{x}.jpg"))
@@ -27,7 +27,7 @@ def clean():
     # DROP non-fashion articles
     non_fashion_articles = {"Wallets", "Backpacks", "Perfume and Body Mist", "Deodorant", "Nail Polish", "Lipstick"}
     df = df[~df['articleType'].isin(non_fashion_articles)].reset_index(drop=True)
-    print("after clean:", df.shape)
+    # print("after clean:", df.shape)
 
     return df
 
@@ -36,7 +36,7 @@ def label_encode(df):
     class_names = sorted(df['articleType'].unique().tolist())
     class_to_idx = {v: i for i, v in enumerate(class_names)}
     # print(f"\nclass_to_idx: {class_to_idx}\n")
-    print(f"number of classes: {len(class_names)}")
+    # print(f"number of classes: {len(class_names)}")
     return class_names, class_to_idx
 
 
