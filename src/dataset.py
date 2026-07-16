@@ -24,9 +24,9 @@ def clean():
     df = df[df['articleType'].isin(valid_articles)].reset_index(drop=True)
     # print(df.shape)
 
-    # DROP non-fashion articles
-    non_fashion_articles = {"Wallets", "Backpacks", "Perfume and Body Mist", "Deodorant", "Nail Polish", "Lipstick"}
-    df = df[~df['articleType'].isin(non_fashion_articles)].reset_index(drop=True)
+    # DROP the following
+    drop_articles = {"Wallets", "Backpacks", "Perfume and Body Mist", "Deodorant", "Nail Polish", "Lipstick", "Sarees", "Kurtas", "Kurtis", "Nightdress", "Tunics"}
+    df = df[~df['articleType'].isin(drop_articles)].reset_index(drop=True)
     # print("after clean:", df.shape)
 
     return df

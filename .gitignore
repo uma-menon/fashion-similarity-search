@@ -2,3 +2,4 @@
 .venv/
 data/
 src/__pycache__/
+notebooks/

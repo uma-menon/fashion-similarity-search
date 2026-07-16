@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,8 +9,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision.models import resnet50, ResNet50_Weights
 from sklearn.model_selection import train_test_split
-from dataset import clean, label_encode, FashionDataset, transformations
-from embeddings import embed_dataset, cluster_sanity_check
+from src.dataset import clean, label_encode, FashionDataset, transformations
+from src.embeddings import embed_dataset, cluster_sanity_check
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,7 +33,8 @@ for param in model.parameters(): param.requires_grad = False
 #unfreeze fc layer
 for param in model.fc.parameters(): param.requires_grad = True
 
-print(f"Expect 79911 trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad) == 79911}")
+expected_trainable_params = 2049 * len(class_names)
+print(f"Expect {expected_trainable_params} trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad) == expected_trainable_params}")
 
 model.to(device)
 

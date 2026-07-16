@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,7 +9,7 @@ from torchvision.models import resnet50, ResNet50_Weights
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
-from dataset import clean, label_encode, FashionDataset, transformations
+from src.dataset import clean, label_encode, FashionDataset, transformations
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
