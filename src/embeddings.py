@@ -1,7 +1,3 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,10 +5,11 @@ from torchvision.models import resnet50, ResNet50_Weights
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
-from src.dataset import clean, label_encode, FashionDataset, transformations
+from dataset import clean, label_encode, FashionDataset, transformations
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+USE_FULL = True
 
 
 def build_model():
@@ -70,24 +67,37 @@ if __name__ == '__main__':
     df = clean()
     class_names, class_to_idx = label_encode(df)
 
-    _, val_df = train_test_split(df, test_size=0.2, stratify=df['articleType'], random_state=42)
+    if USE_FULL:
+        full_dataset = FashionDataset(df, class_to_idx, transformations)
+        full_loader = DataLoader(full_dataset, batch_size=32, shuffle=False, num_workers=0)
+    else:
 
-    val_dataset = FashionDataset(val_df, class_to_idx, transformations)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
+        _, val_df = train_test_split(df, test_size=0.2, stratify=df['articleType'], random_state=42)
+
+        val_dataset = FashionDataset(val_df, class_to_idx, transformations)
+        val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
 
     model = build_model()
 
     # single-image sanity check
-    images, labels, ids = next(iter(val_loader))
+    loader = full_loader if USE_FULL else val_loader
+    images, labels, ids = next(iter(loader))
     with torch.no_grad():
         output = model(images[0].unsqueeze(0).to(device))
     print("single image output shape:", output.shape)  # expect [1, 2048]
 
     # embed full val set
-    embedding_matrix, label_array, id_list = embed_dataset(model, val_loader)
+    if USE_FULL:
+        embedding_matrix, label_array, id_list = embed_dataset(model, full_loader)
+        torch.save(embedding_matrix, 'data/embeddings_full.pt')
+        torch.save(label_array, 'data/labels_full.pt')
+        np.save('data/id_list_full.npy', np.array(id_list))
+    else:
+        embedding_matrix, label_array, id_list = embed_dataset(model, val_loader)
+        torch.save(embedding_matrix, 'data/embeddings.pt')
+        torch.save(label_array, 'data/labels.pt')
+        np.save('data/id_list.npy', np.array(id_list))
 
     cluster_sanity_check(embedding_matrix, label_array, class_names)
 
-    torch.save(embedding_matrix, 'data/embeddings.pt')
-    torch.save(label_array, 'data/labels.pt')
-    np.save('data/id_list.npy', np.array(id_list))
+   
