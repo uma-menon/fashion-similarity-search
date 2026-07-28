@@ -1,0 +1,8 @@
+torch
+torchvision
+faiss-cpu
+kaggle
+scikit-learn
+pandas
+Pillow
+numpy

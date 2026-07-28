@@ -16,14 +16,27 @@ Queried across the following categories: Dresses, Heels, Jeans, Sunglasses, Tshi
 
 For each query, note: how many of the top 5 results are the correct class? Are they visually similar beyond just category (same color, similar silhouette)? Does the finetuned version do better, worse, or the same?
 
-### DRESSES: queried on a straight, black, square-neck midi dress with a high neckline
+### DRESSES: queried on a straight, black, scoop-neck midi dress (69987)
 #### Baseline: 
-- 4 out of 5 results were dresses (outlier was a tshirt)
-- 3 results were black, 2 navy
-- all 4 dress results were roughly the same lenght
-- varied necklines
+- 2 out of 5 results were dresses
+- both dress results were black, 2 tops were dark grey, 1 red top
+- both dress results were roughly the same lengths
+- 2 scoop-necks and 3 v-necks
+- 5 out of 5 women's products
 
 #### Finetuned:
 - 2 out of 5 results were dresses
-- 2 results were black, 2 were green (1 of which had a black bottom), 1 was pink
+- all 5 results were black (1 potentially dark grey)
 - 4 out of 5 results roughly the same length
+- 1 scoop neck, 2 v-necks, 1 collared
+- only 3 out of 5 were women's products
+- 1 pair of shorts
+
+### HEELS: queried on a silver, strappy, low wedge
+#### Baseline: 
+- all results were heels???
+- 3 out of 5 results were silver, 1 white, 1 brown
+- all results were strappy
+
+#### Finetuned:
+- 
