@@ -2,4 +2,9 @@
 .venv/
 data/
 src/__pycache__/
-notebooks/
+.DS_Store
+notebooks/*.py
+notebooks/*.txt
+
+
+!data/benchmark_queries.json

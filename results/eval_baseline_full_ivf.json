@@ -1,0 +1,114 @@
+{
+  "same_article_type": {
+    "p@1": 0.9,
+    "p@3": 0.9667,
+    "p@5": 0.94,
+    "p@10": 0.91,
+    "avg_latency_ms": 3.039,
+    "n_queries": 10
+  },
+  "same_color": {
+    "p@1": 0.5,
+    "p@3": 0.5,
+    "p@5": 0.48,
+    "p@10": 0.45,
+    "avg_latency_ms": 1.445,
+    "n_queries": 10
+  },
+  "same_gender": {
+    "p@1": 0.8,
+    "p@3": 0.7667,
+    "p@5": 0.78,
+    "p@10": 0.81,
+    "avg_latency_ms": 0.768,
+    "n_queries": 10
+  },
+  "footwear": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 0.723,
+    "n_queries": 10
+  },
+  "outerwear": {
+    "p@1": 0.6,
+    "p@3": 0.6,
+    "p@5": 0.48,
+    "p@10": 0.43,
+    "avg_latency_ms": 0.814,
+    "n_queries": 10
+  },
+  "tops": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 0.804,
+    "n_queries": 10
+  },
+  "bottom_wear": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 0.591,
+    "n_queries": 10
+  },
+  "accessories": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 0.741,
+    "n_queries": 10
+  },
+  "bags": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 0.96,
+    "avg_latency_ms": 0.59,
+    "n_queries": 10
+  },
+  "jewelry": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 0.474,
+    "n_queries": 10
+  },
+  "innerwear": {
+    "p@1": 1.0,
+    "p@3": 0.9667,
+    "p@5": 0.94,
+    "p@10": 0.94,
+    "avg_latency_ms": 0.769,
+    "n_queries": 10
+  },
+  "casual_wear": {
+    "p@1": 0.6,
+    "p@3": 0.8,
+    "p@5": 0.82,
+    "p@10": 0.89,
+    "avg_latency_ms": 0.793,
+    "n_queries": 10
+  },
+  "dresses": {
+    "p@1": 0.9,
+    "p@3": 0.7333,
+    "p@5": 0.7,
+    "p@10": 0.67,
+    "avg_latency_ms": 0.787,
+    "n_queries": 10
+  },
+  "rare_class": {
+    "p@1": 1.0,
+    "p@3": 0.8333,
+    "p@5": 0.82,
+    "p@10": 0.83,
+    "avg_latency_ms": 0.583,
+    "n_queries": 10
+  }
+}
