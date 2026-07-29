@@ -18,8 +18,9 @@ faiss.omp_set_num_threads(1)
 
 USE_FINETUNED=False
 USE_FULL=True
+INDEX_TYPE = "ivf" # "flat" or "ivf"
 
-PREFIX = ("finetuned" if USE_FINETUNED else "baseline") + ("_full" if USE_FULL else "_val")
+PREFIX = ("finetuned" if USE_FINETUNED else "baseline") + ("_full" if USE_FULL else "_val") + ("_ivf" if INDEX_TYPE=="ivf" else "")
 print(f"using: {PREFIX} embeddings")
 
 
@@ -55,11 +56,17 @@ print(f"row norms (first 5): {torch.linalg.norm(normalized_embeddings, dim=1)[:5
 print(f"dimensionality: {normalized_embeddings.shape[1]}  (expect 2048)")
 
 # build FAISS index
-index = faiss.IndexFlatL2(normalized_embeddings.shape[1])
-index.add(normalized_embeddings.numpy())
+if INDEX_TYPE == "ivf":
+    quantizer = faiss.IndexFlatL2(2048)
+    index = faiss.IndexIVFFlat(quantizer, 2048, 100)  # nlist ~= sqrt(N)
+    index.train(normalized_embeddings.numpy())
+    index.add(normalized_embeddings.numpy())
+    index.nprobe = 10
+else:
+    index = faiss.IndexFlatL2(normalized_embeddings.shape[1])
+    index.add(normalized_embeddings.numpy())
+ 
 print(f"index size: {index.ntotal}  |  embeddings: {len(id_list)}")
-
-
 
 
 
