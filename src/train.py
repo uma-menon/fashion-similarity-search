@@ -9,11 +9,14 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision.models import resnet50, ResNet50_Weights
 from sklearn.model_selection import train_test_split
+
 from src.dataset import clean, label_encode, FashionDataset, transformations
 from src.embeddings import embed_dataset, cluster_sanity_check
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+FULL_FINETUNE = True  # False=frozen backbone; True=full fine-tune
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 df = clean()
 class_names, class_to_idx = label_encode(df)
@@ -25,25 +28,43 @@ val_dataset = FashionDataset(val_df, class_to_idx, transformations)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
 
-model = resnet50(weights=ResNet50_Weights.DEFAULT)
-model.fc = nn.Linear(2048, len(class_names))  # Adjust the final layer for the number of classes
+# load model
+# start from last checkpoint (frozen backbone) rather than raw ImageNet weights
+model = resnet50(weights=None)
+model.fc = nn.Linear(2048, len(class_names))
+model.load_state_dict(torch.load('data/best_model.pt', map_location=device))
 
-#freeze backbone
-for param in model.parameters(): param.requires_grad = False
-#unfreeze fc layer
-for param in model.fc.parameters(): param.requires_grad = True
-
-expected_trainable_params = 2049 * len(class_names)
-print(f"Expect {expected_trainable_params} trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad) == expected_trainable_params}")
+# freeze/unfreeze
+if FULL_FINETUNE:
+    for param in model.parameters():
+        param.requires_grad = True
+    print(f"full fine-tune: {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters")
+else:
+    for param in model.parameters():
+        param.requires_grad = False
+    for param in model.fc.parameters():
+        param.requires_grad = True
+    expected = 2049 * len(class_names)
+    print(f"frozen backbone: {sum(p.numel() for p in model.parameters() if p.requires_grad):,} trainable parameters (expect {expected})")
 
 model.to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.fc.parameters(), lr=0.001) # Adam automatically adjusts learning rate for each parameter
+
+# optimizer
+    # differential learning rates: backbone (pretrained) gets 1e-5, fc (can afford a higher rate) gets 1e-4
+if FULL_FINETUNE:
+    optimizer = optim.Adam([
+        {"params": [p for name, p in model.named_parameters() if "fc" not in name], "lr": 1e-5},
+        {"params": model.fc.parameters(), "lr": 1e-4},
+    ])
+else:
+    optimizer = optim.Adam(model.fc.parameters(), lr=1e-3) # Adam automatically adjusts learning rate for each parameter
 
 
 def training_loop(num_epochs):
     best_val_acc = 0.0
+    checkpoint_path = "data/best_model_fulltune.pt" if FULL_FINETUNE else "data/best_model.pt"
 
     for epoch in range(num_epochs):
 
@@ -72,8 +93,6 @@ def training_loop(num_epochs):
             if batch_idx % 50 == 0:
                 print(f"  epoch {epoch+1} | batch {batch_idx}/{len(train_loader)} | loss: {loss.item():.4f}")
 
-
-
         # --- val phase ---
         model.eval()
         val_batch_losses = []
@@ -90,14 +109,13 @@ def training_loop(num_epochs):
                 val_correct += (predictions == labels).sum().item()
                 val_total += labels.size(0)
 
-
         train_acc = train_correct / train_total
-        val_acc = val_correct / val_total
+        val_acc   = val_correct / val_total
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
-            torch.save(model.state_dict(), "data/best_model.pt")
-            print(f"  checkpoint saved (val acc: {best_val_acc*100:.2f}%)")
+            torch.save(model.state_dict(), checkpoint_path)
+            print(f"  checkpoint saved → {checkpoint_path} (val acc: {best_val_acc*100:.2f}%)")
 
         print(
             f"\nEpoch {epoch+1}/{num_epochs} | "
@@ -108,19 +126,22 @@ def training_loop(num_epochs):
         )
 #end
 
-
 if __name__ == '__main__':
     training_loop(num_epochs=5)
 
+    checkpoint_path = "data/best_model_fulltune.pt" if FULL_FINETUNE else "data/best_model.pt"
+    emb_suffix = "_fulltune" if FULL_FINETUNE else "_finetuned"
+
     model = resnet50(weights=None)
     model.fc = nn.Linear(2048, len(class_names))
-    model.load_state_dict(torch.load('data/best_model.pt', map_location=device))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)
     model.eval()
     model.fc = nn.Identity()
+
     embedding_matrix, label_array, id_list = embed_dataset(model, val_loader)
-    torch.save(embedding_matrix, 'data/embeddings_finetuned.pt')
-    torch.save(label_array, 'data/labels_finetuned.pt')
-    np.save('data/id_list_finetuned.npy', np.array(id_list))
+    torch.save(embedding_matrix, f'data/embeddings{emb_suffix}.pt')
+    torch.save(label_array,      f'data/labels{emb_suffix}.pt')
+    np.save(f'data/id_list{emb_suffix}.npy', np.array(id_list))
 
     cluster_sanity_check(embedding_matrix, label_array, class_names)
