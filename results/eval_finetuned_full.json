@@ -1,0 +1,114 @@
+{
+  "same_article_type": {
+    "p@1": 1.0,
+    "p@3": 0.9667,
+    "p@5": 0.92,
+    "p@10": 0.88,
+    "avg_latency_ms": 6.261,
+    "n_queries": 10
+  },
+  "same_color": {
+    "p@1": 0.4,
+    "p@3": 0.5,
+    "p@5": 0.46,
+    "p@10": 0.46,
+    "avg_latency_ms": 5.951,
+    "n_queries": 10
+  },
+  "same_gender": {
+    "p@1": 0.9,
+    "p@3": 0.8333,
+    "p@5": 0.88,
+    "p@10": 0.87,
+    "avg_latency_ms": 6.697,
+    "n_queries": 10
+  },
+  "footwear": {
+    "p@1": 0.9,
+    "p@3": 0.9,
+    "p@5": 0.92,
+    "p@10": 0.94,
+    "avg_latency_ms": 6.205,
+    "n_queries": 10
+  },
+  "outerwear": {
+    "p@1": 0.6,
+    "p@3": 0.5,
+    "p@5": 0.46,
+    "p@10": 0.45,
+    "avg_latency_ms": 6.026,
+    "n_queries": 10
+  },
+  "tops": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 6.323,
+    "n_queries": 10
+  },
+  "bottom_wear": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 1.0,
+    "avg_latency_ms": 5.949,
+    "n_queries": 10
+  },
+  "accessories": {
+    "p@1": 1.0,
+    "p@3": 0.9333,
+    "p@5": 0.88,
+    "p@10": 0.87,
+    "avg_latency_ms": 5.978,
+    "n_queries": 10
+  },
+  "bags": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 0.98,
+    "p@10": 0.96,
+    "avg_latency_ms": 6.004,
+    "n_queries": 10
+  },
+  "jewelry": {
+    "p@1": 1.0,
+    "p@3": 1.0,
+    "p@5": 1.0,
+    "p@10": 0.94,
+    "avg_latency_ms": 5.994,
+    "n_queries": 10
+  },
+  "innerwear": {
+    "p@1": 1.0,
+    "p@3": 0.9667,
+    "p@5": 0.96,
+    "p@10": 0.94,
+    "avg_latency_ms": 5.987,
+    "n_queries": 10
+  },
+  "casual_wear": {
+    "p@1": 0.8,
+    "p@3": 0.8333,
+    "p@5": 0.84,
+    "p@10": 0.88,
+    "avg_latency_ms": 6.058,
+    "n_queries": 10
+  },
+  "dresses": {
+    "p@1": 0.9,
+    "p@3": 0.8667,
+    "p@5": 0.86,
+    "p@10": 0.81,
+    "avg_latency_ms": 6.226,
+    "n_queries": 10
+  },
+  "rare_class": {
+    "p@1": 1.0,
+    "p@3": 0.8333,
+    "p@5": 0.84,
+    "p@10": 0.84,
+    "avg_latency_ms": 5.953,
+    "n_queries": 10
+  }
+}

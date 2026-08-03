@@ -14,9 +14,9 @@ from benchmark import get_ground_truth, METADATA_CATEGORIES, GROUPING_CATEGORIES
 
 faiss.omp_set_num_threads(1)
 
-USE_FINETUNED = False
+USE_FINETUNED = True
 USE_FULL = True
-INDEX_TYPE = "ivf" # "flat" or "ivf"
+INDEX_TYPE = "flat" # "flat" or "ivf"
 
 PREFIX = ("finetuned" if USE_FINETUNED else "baseline") + ("_full" if USE_FULL else "_val") + ("_ivf" if INDEX_TYPE=="ivf" else "")
 print(f"evaluating: {PREFIX}")
