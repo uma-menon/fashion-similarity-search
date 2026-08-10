@@ -1,7 +1,3 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,11 +6,11 @@ from torch.utils.data import DataLoader
 from torchvision.models import resnet50, ResNet50_Weights
 from sklearn.model_selection import train_test_split
 
-from src.dataset import clean, label_encode, FashionDataset, transformations
-from src.embeddings import embed_dataset, cluster_sanity_check
+from dataset import clean, label_encode, FashionDataset, transformations
+from embeddings import embed_dataset, cluster_sanity_check
 
 
-FULL_FINETUNE = True  # False=frozen backbone; True=full fine-tune
+FULL_FINETUNE = True  # False=frozen backbone (Day 5); True=full fine-tune (Day 9)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -23,13 +19,12 @@ class_names, class_to_idx = label_encode(df)
 train_df, val_df = train_test_split(df, test_size=0.2, stratify=df['articleType'], random_state=42)
 
 train_dataset = FashionDataset(train_df, class_to_idx, transformations)
-val_dataset = FashionDataset(val_df, class_to_idx, transformations)
+val_dataset   = FashionDataset(val_df, class_to_idx, transformations)
 
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=0)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
+val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
 
-# load model
-# start from last checkpoint (frozen backbone) rather than raw ImageNet weights
+# load model — start from frozen-backbone checkpoint rather than raw ImageNet weights
 model = resnet50(weights=None)
 model.fc = nn.Linear(2048, len(class_names))
 model.load_state_dict(torch.load('data/best_model.pt', map_location=device))
@@ -52,14 +47,14 @@ model.to(device)
 criterion = nn.CrossEntropyLoss()
 
 # optimizer
-    # differential learning rates: backbone (pretrained) gets 1e-5, fc (can afford a higher rate) gets 1e-4
+# differential learning rates: backbone (pretrained) gets 1e-5, fc (can afford higher rate) gets 1e-4
 if FULL_FINETUNE:
     optimizer = optim.Adam([
         {"params": [p for name, p in model.named_parameters() if "fc" not in name], "lr": 1e-5},
         {"params": model.fc.parameters(), "lr": 1e-4},
     ])
 else:
-    optimizer = optim.Adam(model.fc.parameters(), lr=1e-3) # Adam automatically adjusts learning rate for each parameter
+    optimizer = optim.Adam(model.fc.parameters(), lr=1e-3)
 
 
 def training_loop(num_epochs):
@@ -125,6 +120,7 @@ def training_loop(num_epochs):
             f"val acc: {val_acc*100:.2f}%\n"
         )
 #end
+
 
 if __name__ == '__main__':
     training_loop(num_epochs=5)

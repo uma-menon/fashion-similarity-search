@@ -1,8 +1,8 @@
-torch
-torchvision
+torch==2.12.1
+torchvision==0.27.1
 faiss-cpu
+numpy==1.24.1
+pandas==2.3.3
+Pillow==9.4.0
+scikit-learn==1.7.2
 kaggle
-scikit-learn
-pandas
-Pillow
-numpy

@@ -1,86 +1,33 @@
-# fashion-similarity-search
-PyTorch implementation of a fashion visual similarity search engine using Fashion Product Images
--> starting with FPI (small)
+# Fashion Visual Similarity Search
 
-```bash
-pip install torch torchvision faiss-cpu numpy pillow matplotlib pandas kaggle jupyter scikit-learn
+PyTorch implementation of a visual similarity search engine for fashion — fine-tuned ResNet50 embeddings + FAISS indexing, evaluated across 13 style categories on 34,849 images.
 
-mkdir data
-kaggle datasets download -d paramaggarwal/fashion-product-images-small -p data/
+## Demo
 
-cd data && unzip fashion-product-images-small.zip
-```
+**Dresses — baseline vs full fine-tune (query → top-5 results):**
 
-## Before (FULL-backbone) finetuning:
+Baseline:
+![dresses baseline](notebooks/checks/grids/dresses_baseline.jpg)
 
-| Category | P@1 | P@3 | P@5 | P@10 | ms |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| same_article_type | 0.900 | 0.967 | 0.940 | 0.910 | 6.33ms |
-| same_color | 0.500 | 0.500 | 0.480 | 0.450 | 5.92ms |
-| same_gender | 0.800 | 0.767 | 0.780 | 0.810 | 6.09ms |
-| footwear | 1.000 | 1.000 | 1.000 | 1.000 | 5.84ms |
-| outerwear | 0.600 | 0.600 | 0.480 | 0.430 | 5.77ms |
-| tops | 1.000 | 1.000 | 1.000 | 1.000 | 5.89ms |
-| bottom_wear | 1.000 | 1.000 | 1.000 | 1.000 | 5.94ms |
-| accessories | 1.000 | 1.000 | 1.000 | 1.000 | 7.17ms |
-| bags | 1.000 | 1.000 | 1.000 | 0.960 | 5.81ms |
-| jewelry | 1.000 | 1.000 | 1.000 | 1.000 | 5.84ms |
-| innerwear | 1.000 | 0.967 | 0.940 | 0.940 | 5.79ms |
-| casual_wear | 0.600 | 0.800 | 0.820 | 0.880 | 5.96ms |
-| dresses | 0.900 | 0.733 | 0.700 | 0.670 | 5.81ms |
-| rare_class | 1.000 | 0.833 | 0.820 | 0.830 | 5.78ms |
-| **MEAN** | **0.879** | **0.869** | **0.854** | **0.849** | **6.00ms** |
+Fine-tuned:
+![dresses finetuned](notebooks/checks/grids/dresses_finetuned.jpg)
 
+More retrieval grids across all 5 query classes (Tshirts, Heels, Jeans, Sunglasses, Dresses):
 
-- mean P@5 = 0.854
-- my P@5 = 1.000 cases: footwear, tops, bottom_wear, accessories, bags, jewelry (all visually distinctive)
-- what's lagging:
-    - same color (P@5 = .480): color-based retrieval is a known weakness of classification-pretrained embeddings
-    - outerwear (P@5 = .480): even though jackets/sweaters/sweatshirts are visually similar to each other, they are also visually similar to shirts/tops
-    - dresses (P@5 = .700): in a qualitiative check, I noticed there often is confusion between dresses and tops
-    - same gender (P@5 = .780): decent, but perhaps gender isn't as strong of a visual signal
-- latency: ~5.996ms per query
+| | Baseline | Fine-tuned |
+|---|---|---|
+| Tshirts | ![](notebooks/checks/grids/baseline_full_Tshirts_53759.jpg) | ![](notebooks/checks/grids/finetuned_full_Tshirts_53759.jpg) |
+| Heels | ![](notebooks/checks/grids/baseline_full_Heels_54118.jpg) | ![](notebooks/checks/grids/finetuned_full_Heels_54118.jpg) |
+| Jeans | ![](notebooks/checks/grids/baseline_full_Jeans_39386.jpg) | ![](notebooks/checks/grids/finetuned_full_Jeans_39386.jpg) |
+| Sunglasses | ![](notebooks/checks/grids/baseline_full_Sunglasses_16957.jpg) | ![](notebooks/checks/grids/finetuned_full_Sunglasses_16957.jpg) |
+| Dresses | ![](notebooks/checks/grids/baseline_full_Dresses_39716.jpg) | ![](notebooks/checks/grids/finetuned_full_Dresses_39716.jpg) |
 
+## Results
 
-### With IndexIVFFlat
-
-| Category | P@1 | P@3 | P@5 | P@10 | ms |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| same_article_type | 0.900 | 0.967 | 0.940 | 0.910 | 3.04ms |
-| same_color | 0.500 | 0.500 | 0.480 | 0.450 | 1.45ms |
-| same_gender | 0.800 | 0.767 | 0.780 | 0.810 | 0.77ms |
-| footwear | 1.000 | 1.000 | 1.000 | 1.000 | 0.72ms |
-| outerwear | 0.600 | 0.600 | 0.480 | 0.430 | 0.81ms |
-| tops | 1.000 | 1.000 | 1.000 | 1.000 | 0.80ms |
-| bottom_wear | 1.000 | 1.000 | 1.000 | 1.000 | 0.59ms |
-| accessories | 1.000 | 1.000 | 1.000 | 1.000 | 0.74ms |
-| bags | 1.000 | 1.000 | 1.000 | 0.960 | 0.59ms |
-| jewelry | 1.000 | 1.000 | 1.000 | 1.000 | 0.47ms |
-| innerwear | 1.000 | 0.967 | 0.940 | 0.940 | 0.77ms |
-| casual_wear | 0.600 | 0.800 | 0.820 | 0.890 | 0.79ms |
-| dresses | 0.900 | 0.733 | 0.700 | 0.670 | 0.79ms |
-| rare_class | 1.000 | 0.833 | 0.820 | 0.830 | 0.58ms |
-| **MEAN** | **0.879** | **0.869** | **0.854** | **0.849** | **.92ms** |
-
-| Method | Mean P@5 | Avg Latency |
-| --- | ---: | ---: |
-| IndexFlatL2 (exact) | 0.854 | ~6ms |
-| IndexIVFFlat (approximate) | 0.854 | ~0.8ms |
-| **Speedup** | **0% precision loss** | **~7.5× faster** |
-
-
-## Results after full finetuning
-- dresses (+0.160): This category in baseline was often confused with Tops. Full fine-tuning learned to distinguish these
-- same_gender (+0.100): The model learned gender as a visual signal, which a frozen backbone couldn't do
-- casual_wear, innerwear, rare_class: small gains
-
-- footwear (-0.080) and accessories (-0.120): these were at 1.00 in P@1 but dropped in P@5, meaning the fine-tuned model is slightly more "opinionated"
-    - finetuned model retrieves very close matches first but the 4th/5th results are less diverse. Reflective of a known fine-tuning tradeoff: better precision at top-1, slightly narrower retrieval overall
-
-Frozen backbone fine-tuning improved classification accuracy (82% -> 88.95%) but didn't move embeddings. Full backbone fine-tuning moved both: embedding clustering improved (same-class L2: 8.06 -> 12.92, but ratio improved), and the weakest retrieval category (dresses) saw the largest gain (+16%).
+### Baseline vs Full Fine-Tune (Flat Index, P@5)
 
 | Category | Base P@5 | FT P@5 | Delta |
-|----------|---------:|--------:|------:|
+|----------|---------:|-------:|------:|
 | same_article_type | 0.940 | 0.920 | -0.020 |
 | same_color | 0.480 | 0.460 | -0.020 |
 | same_gender | 0.780 | 0.880 | +0.100 |
@@ -93,18 +40,106 @@ Frozen backbone fine-tuning improved classification accuracy (82% -> 88.95%) but
 | jewelry | 1.000 | 1.000 | +0.000 |
 | innerwear | 0.940 | 0.960 | +0.020 |
 | casual_wear | 0.820 | 0.840 | +0.020 |
-| dresses | 0.700 | 0.860 | +0.160 |
+| dresses | 0.700 | 0.860 | **+0.160** |
 | rare_class | 0.820 | 0.840 | +0.020 |
-| **Mean** | **0.854** | **0.857** | **+0.003** |
+| **MEAN** | **0.854** | **0.857** | **+0.003** |
 
+The mean delta (+0.003) undersells the improvement — 6 of 14 categories were already at P@5 = 1.00 at baseline and had no room to move, compressing the mean. The signal is in the categories that had headroom: `dresses` +0.160, `same_gender` +0.100.
 
-| Model | Avg Latency (Flat Index) |
-|-------|------------:|
-| Baseline | ~6.00 ms |
-| Fine-tuned | ~6.12 ms |
+- **What full fine-tuning fixed:** frozen backbone fine-tuning improved classification accuracy (82.2% → 88.9%) but didn't move the embedding space — only the classification head weights changed. Full end-to-end fine-tuning actually shifted the backbone features: same-class L2 went from 8.06 → 12.92, and the `dresses` category (which baseline consistently confused with Tops) improved by 16%.
+- **What's still lagging:**
+    - `same_color` (P@5 = 0.480): color-based retrieval is a known weakness of classification-pretrained embeddings — the model learns *what* something is more strongly than *what color* it is
+    - `outerwear` (P@5 = 0.480): Jackets/Sweaters/Sweatshirts are visually similar to each other but also to Shirts/Tops, so the category boundaries are soft
+    - `accessories` dropped post fine-tuning (-0.120): the fine-tuned model retrieves very close matches at top-1 but the 4th/5th results are less diverse — a known tradeoff of fine-tuning toward tighter clusters
+
+### Flat vs Approximate Index (Baseline Embeddings)
 
 | Index | Mean P@5 | Avg Latency |
 |-------|---------:|------------:|
 | IndexFlatL2 (exact) | 0.854 | ~6.00 ms |
-| IndexIVFFlat (approximate) | 0.854 | ~0.92 ms |
+| IndexIVFFlat nlist=100, nprobe=10 (approximate) | 0.854 | ~0.92 ms |
 | **Speedup** | **0% precision loss** | **~6.5× faster** |
+
+At 34,849 vectors with nprobe=10 (10% of cells searched per query), IVF matches exact search with 0% precision loss. The speedup becomes more dramatic at larger index sizes — this tradeoff is the main motivation for approximate indexing in production.
+
+## Architecture
+
+Images are passed through a ResNet50 backbone (pretrained on ImageNet, fine-tuned on 34,849 fashion product images) with the classification head replaced by an identity layer, producing 2048-dimensional feature vectors. Vectors are L2-normalized and stored in a FAISS index for nearest-neighbor retrieval.
+
+```
+query image → ResNet50 backbone → 2048-d embedding → L2 normalize → FAISS search → top-k results
+```
+
+**Two training modes:**
+- **Frozen backbone:** only the classification head is trained (`lr=1e-3`). Fast convergence, 82.2% val accuracy, but the convolutional features never change — so embeddings don't improve for retrieval.
+- **Full fine-tune:** entire backbone trained with differential learning rates (backbone `lr=1e-5`, head `lr=1e-4`), starting from the frozen-backbone checkpoint. 88.9% val accuracy, embedding clustering improves, retrieval quality improves on weaker categories.
+
+**Two index types:**
+- **IndexFlatL2:** exact brute-force search. Accurate, scales O(n) with index size.
+- **IndexIVFFlat:** approximate search via inverted file index. Clusters vectors into `nlist` cells; queries search only `nprobe` nearest cells. Configurable speed/accuracy tradeoff.
+
+## Dataset
+
+- **Source:** [Fashion Product Images (small)](https://www.kaggle.com/datasets/paramaggarwal/fashion-product-images-small) — Kaggle, paramaggarwal
+- **After filtering:** 34,849 images, 34 classes
+- **Filtering decisions:** dropped non-Western fashion categories (Sarees, Kurtas, Kurtis, Tunics, Nightdress), cosmetics/grooming, and classes with fewer than 150 images
+- **Split:** 80/20 train/val, stratified by class
+
+## Project Structure
+
+```
+src/
+  dataset.py        data loading, filtering, FashionDataset class
+  embeddings.py     ResNet50 feature extraction, cluster sanity check
+  train.py          fine-tuning: frozen backbone and full fine-tune modes
+  faiss_index.py    FAISS index building, visual query function
+  benchmark.py      13-category benchmark definition, ground truth functions
+  eval.py           precision@k scoring across all benchmark categories
+data/
+  benchmark_queries.json    fixed benchmark query set (130 queries, 13 categories)
+results/
+  eval_baseline_full.json
+  eval_finetuned_full.json
+  eval_baseline_full_ivf.json
+notebooks/
+  checks/grids/     stitched retrieval grids — query + top-5 results
+```
+
+## Setup
+
+```bash
+git clone https://github.com/uma-menon/fashion-similarity-search.git
+cd fashion-similarity-search
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# download dataset (requires Kaggle API token)
+kaggle datasets download -d paramaggarwal/fashion-product-images-small -p data/
+unzip data/fashion-product-images-small.zip -d data/
+
+# build full-dataset embeddings and index (~35 min on CPU)
+python src/embeddings.py      # USE_FULL = True
+python src/faiss_index.py     # USE_FULL = True, USE_FINETUNED = False, INDEX_TYPE = "flat"
+
+# run eval
+python src/eval.py
+```
+
+## Training
+
+```bash
+# frozen backbone (~2 hrs CPU / ~20 min GPU)
+# set FULL_FINETUNE = False in src/train.py
+python src/train.py
+
+# full fine-tune (~45 min on Colab T4, recommended)
+# set FULL_FINETUNE = True in src/train.py
+python src/train.py
+```
+
+After training, re-embed and re-index:
+
+```bash
+python src/reembed_fulltune.py    # generates embeddings_full_finetuned.pt
+python src/faiss_index.py         # USE_FULL = True, USE_FINETUNED = True
+```
