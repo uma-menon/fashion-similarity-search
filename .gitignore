@@ -17,3 +17,4 @@ data/*
 
 # system
 .DS_Store
+.gradio/
